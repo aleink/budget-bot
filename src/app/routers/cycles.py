@@ -13,7 +13,6 @@ def create_cycle(
     cycle_in: Cycle,
     session: Session = Depends(get_session),
 ):
-    # require at least one category
     cats = session.exec(select(Category)).all()
     if not cats:
         raise HTTPException(
@@ -25,20 +24,19 @@ def create_cycle(
     session.commit()
     session.refresh(cycle_in)
 
-    # create envelopes
-    half = cycle_in.pay_amount / 2
-    for i, cat in enumerate(cats):
-        alloc = (cat.monthly_budget / 100) / 2 if isinstance(cat.monthly_budget, str) else cat.monthly_budget / 2
+    # create envelopes: split each category’s monthly_budget in half
+    for cat in cats:
+        half_cents = cat.monthly_budget // 2
         env = Envelope(
             cycle_id=cycle_in.id,
             category_id=cat.id,
-            initial_amount=int(cat.monthly_budget // 2 if not isinstance(cat.monthly_budget, str) else float(cat.monthly_budget.strip('$'))/2 * 100),
-            current_amount=int(cat.monthly_budget // 2 if not isinstance(cat.monthly_budget, str) else float(cat.monthly_budget.strip('$'))/2 * 100),
+            initial_amount=half_cents,
+            current_amount=half_cents,
         )
         session.add(env)
     session.commit()
 
-    # convert pay_amount to dollars
+    # format pay_amount as dollars
     cycle_in.pay_amount = f"${cycle_in.pay_amount / 100:,.2f}"
     return cycle_in
 
@@ -62,8 +60,10 @@ def delete_cycle(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cycle not found."
         )
-    # delete all envelopes and transactions for this cycle
-    envs = session.exec(select(Envelope).where(Envelope.cycle_id == cycle_id)).all()
+    # delete envelopes and transactions via cascade if configured, else explicitly:
+    envs = session.exec(
+        select(Envelope).where(Envelope.cycle_id == cycle_id)
+    ).all()
     for env in envs:
         session.delete(env)
     session.delete(cyc)

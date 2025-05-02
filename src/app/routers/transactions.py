@@ -6,7 +6,6 @@ from typing import Optional
 from src.db import get_session
 from src.models import Transaction, Envelope, Cycle
 
-# Request model
 class TransactionCreate(SQLModel):
     category_id: int
     amount:      int  # in cents
@@ -61,7 +60,7 @@ def create_transaction(
     session.commit()
     session.refresh(record)
 
-    # convert to dollars before returning
+    # format amount as dollars
     record.amount = f"${record.amount / 100:,.2f}"
     return record
 
@@ -77,7 +76,7 @@ def delete_transaction(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Transaction not found."
         )
-    # refund envelope
+    # refund envelope if exists
     env = session.exec(
         select(Envelope).where(
             Envelope.cycle_id == tx.cycle_id,

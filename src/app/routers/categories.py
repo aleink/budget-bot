@@ -30,7 +30,7 @@ def create_category(
 @router.get("/", response_model=List[Category])
 def list_categories(session: Session = Depends(get_session)):
     cats = session.exec(select(Category)).all()
-    # convert budgets to dollars string
+    # format monthly_budget as dollars
     for c in cats:
         c.monthly_budget = f"${c.monthly_budget / 100:,.2f}"
     return cats
