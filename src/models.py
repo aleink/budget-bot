@@ -1,51 +1,60 @@
-"""
-All SQLModel tables for Budget Bot.
-Amounts are stored in **cents** (INTEGER) to avoid float rounding errors.
-"""
+from datetime import date, datetime
+from typing import List, Optional
 
-from __future__ import annotations
+from sqlmodel import Field, Relationship, SQLModel
 
-from datetime import date
-from typing import Optional
-
-from sqlmodel import Field, SQLModel
-
-
-# --------------------------------------------------------------------------- #
-# 1 · Category – monthly budget template                                     #
-# --------------------------------------------------------------------------- #
 
 class Category(SQLModel, table=True):
-    """Budget category, e.g. 'Groceries' or 'Rent'."""
+    """
+    A spending category with a monthly budget.
+    """
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(index=True, unique=True, max_length=50)
-    monthly_budget: int  # cents
+    name: str = Field(index=True, unique=True)
+    monthly_budget: int  # in cents
 
+    # back‐refs
+    envelopes: List["Envelope"] = Relationship(back_populates="category")
+    transactions: List["Transaction"] = Relationship(back_populates="category")
 
-# --------------------------------------------------------------------------- #
-# 2 · Cycle – one row per salary deposit                                      #
-# --------------------------------------------------------------------------- #
 
 class Cycle(SQLModel, table=True):
-    """Bi-weekly (or twice-monthly) pay period started by a salary deposit."""
+    """
+    A two‐week cycle (paycheck) into which budgets/envelopes are split.
+    """
     id: Optional[int] = Field(default=None, primary_key=True)
-    start_date: date
-    end_date: Optional[date] = Field(default=None)
-    pay_amount: int  # cents
+    pay_amount: int  # the full paycheck in cents
+    start_date: date = Field(default_factory=date.today)
 
+    # back‐refs
+    envelopes: List["Envelope"] = Relationship(back_populates="cycle")
+    transactions: List["Transaction"] = Relationship(back_populates="cycle")
 
-# --------------------------------------------------------------------------- #
-# 3 · Envelope – half-month slice of a category budget                        #
-# --------------------------------------------------------------------------- #
 
 class Envelope(SQLModel, table=True):
+    """
+    Tracks the per‐category allocation and remaining amount for a cycle.
+    """
     id: Optional[int] = Field(default=None, primary_key=True)
-
-    # FK → Cycle
     cycle_id: int = Field(foreign_key="cycle.id")
-
-    # FK → Category
     category_id: int = Field(foreign_key="category.id")
+    initial_amount: int  # cents allocated at cycle start
+    current_amount: int  # cents remaining
 
-    initial_amount: int  # cents
-    current_amount: int
+    # relationships
+    cycle: "Cycle" = Relationship(back_populates="envelopes")
+    category: "Category" = Relationship(back_populates="envelopes")
+
+
+class Transaction(SQLModel, table=True):
+    """
+    Records a single expense against a cycle/envelope.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    cycle_id: int = Field(foreign_key="cycle.id")
+    category_id: int = Field(foreign_key="category.id")
+    amount: int  # in cents (positive number for spend)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+    # back‐refs
+    cycle: "Cycle" = Relationship(back_populates="transactions")
+    category: "Category" = Relationship(back_populates="transactions")
