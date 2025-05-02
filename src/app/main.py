@@ -14,7 +14,7 @@ from src.app.routers import (
 
 app = FastAPI(title="Budget Bot API")
 
-# Enable CORS for your UI
+# CORS for your UI
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,9 +26,10 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# Mount routers (pass them directly—each is already an APIRouter)
-app.include_router(categories,    prefix="/categories",   tags=["categories"])
-app.include_router(cycles,        prefix="/cycles",       tags=["cycles"])
-app.include_router(budget,        prefix="/budget",       tags=["budget"])
-app.include_router(alerts,        prefix="/alerts",       tags=["alerts"])
-app.include_router(transactions,  prefix="/transactions", tags=["transactions"])
+# mount routers
+app.include_router(categories,    prefix="/categories", tags=["categories"])
+app.include_router(cycles,        prefix="/cycles",     tags=["cycles"])
+app.include_router(budget,        prefix="/budget",     tags=["budget"])
+app.include_router(alerts,        prefix="/alerts",     tags=["alerts"])
+# transactions.router already has prefix="/transactions"
+app.include_router(transactions)
