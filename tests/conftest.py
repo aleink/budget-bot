@@ -1,11 +1,14 @@
 """
-Make the project root importable as a top-level module in tests.
-
-By appending the repo’s root directory to sys.path, `import src...`
-works whether you run tests locally on Windows or inside CI.
+Make the project root importable in tests and ensure a fresh DB file.
 """
-import sys
+import sys, os
 from pathlib import Path
 
+# 1) Add the repo root to PYTHONPATH
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(ROOT))
+
+# 2) Remove any lingering budget.db so each test run starts clean
+DB = ROOT / "budget.db"
+if DB.exists():
+    os.remove(DB)
