@@ -1,3 +1,5 @@
+# src/app/main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,7 +14,12 @@ from src.app.routers import (
 
 app = FastAPI(title="Budget Bot API")
 
-# Enable CORS (so your Pages or localhost UI can talk to the API)
+# Health check
+@app.get("/ping")
+def ping():
+    return {"ping": "pong"}
+
+# Allow UI (Pages or localhost) to call us
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,9 +31,9 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# Mount each router under its path
-app.include_router(categories,    prefix="/categories",   tags=["categories"])
-app.include_router(cycles,        prefix="/cycles",       tags=["cycles"])
-app.include_router(budget,        prefix="/budget",       tags=["budget"])
-app.include_router(alerts,        prefix="/alerts",       tags=["alerts"])
-app.include_router(transactions,  prefix="/transactions", tags=["transactions"])
+# Mount your routers
+app.include_router(categories,   prefix="/categories",   tags=["categories"])
+app.include_router(cycles,       prefix="/cycles",       tags=["cycles"])
+app.include_router(budget,       prefix="/budget",       tags=["budget"])
+app.include_router(alerts,       prefix="/alerts",       tags=["alerts"])
+app.include_router(transactions, prefix="/transactions", tags=["transactions"])
