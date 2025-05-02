@@ -1,41 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Record Expense – Budget Bot</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.4.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/style.css" rel="stylesheet">
-</head>
-<body>
-
-  <!-- Sticky top navbar with back button -->
-  <header class="navbar">
-    <div class="container d-flex align-items-center">
-      <button class="btn-back" onclick="location.href='index.html'">&larr;</button>
-      <span class="nav-title">Record Expense</span>
-    </div>
-  </header>
-
-  <div class="container mt-4" style="max-width:360px;">
-    <div class="card p-3">
-      <form id="txForm">
-        <label class="form-label">Category</label>
-        <select name="category_id" id="catSelect" class="form-control" required>
-          <option value="">Loading…</option>
-        </select>
-        <label class="form-label">Amount (cents)</label>
-        <input type="number" name="amount" class="form-control" placeholder="e.g. 500 for $5.00" required>
-        <button type="submit" class="btn-primary">Submit Expense</button>
-      </form>
-      <div id="txMsg" style="margin-top:1rem; text-align:center; font-weight:500;"></div>
-    </div>
-  </div>
-
   <script>
     const API = 'http://127.0.0.1:8000';
 
-    // Populate category dropdown
     async function loadCats() {
       const res = await fetch(`${API}/categories/`);
       const cats = await res.json();
@@ -49,32 +14,51 @@
       });
     }
 
-    // Handle form submit
+    async function loadTxs() {
+      const res = await fetch(`${API}/transactions/`);
+      const txs = await res.json();
+      const list = document.getElementById('txList');
+      list.innerHTML = '';
+      txs.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item d-flex justify-content-between align-items-center';
+        item.innerHTML = `
+          <div>${t.timestamp.slice(0,19).replace('T',' ')}</div>
+          <div>
+            <span>${t.amount}</span>
+            <button class="btn btn-sm btn-danger ms-2">Delete</button>
+          </div>
+        `;
+        item.querySelector('button').onclick = async () => {
+          await fetch(`${API}/transactions/${t.id}`, { method: 'DELETE' });
+          loadTxs();
+        };
+        list.appendChild(item);
+      });
+    }
+
     document.getElementById('txForm').onsubmit = async e => {
       e.preventDefault();
       const fd = new FormData(e.target);
       const payload = {
         category_id: Number(fd.get('category_id')),
-        amount:      Number(fd.get('amount'))
+        amount:      Math.round(Number(fd.get('amount'))*100)
       };
       const res = await fetch(`${API}/transactions/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
-      const msg = document.getElementById('txMsg');
       if (res.ok) {
-        msg.style.color = 'green';
-        msg.textContent = `✅ Recorded $${(payload.amount/100).toFixed(2)}`;
         e.target.reset();
+        loadTxs();
       } else {
-        msg.style.color = 'red';
-        msg.textContent = `❌ ${data.detail}`;
+        alert((await res.json()).detail);
       }
     };
 
+    // initial
     loadCats();
+    // Create a GET /transactions endpoint in your API (list all)
+    loadTxs();
   </script>
-</body>
-</html>

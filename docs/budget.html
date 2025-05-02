@@ -8,46 +8,60 @@
   <link href="assets/style.css" rel="stylesheet">
 </head>
 <body>
+  <!-- Sticky header with back button -->
   <header class="navbar">
-    <div class="container">
+    <div class="container d-flex align-items-center">
       <button class="btn-back" onclick="location.href='index.html'">&larr;</button>
       <span class="nav-title">Budget Status</span>
     </div>
   </header>
 
-  <div class="container">
-    <button onclick="loadBudget()" class="btn-secondary">Refresh</button>
-    <div class="table-responsive" style="margin-top:1rem;">
-      <table class="table">
-        <thead>
-          <tr><th>Category</th><th>Left</th><th>Initial</th><th>%</th></tr>
-        </thead>
-        <tbody id="tbl"></tbody>
-      </table>
+  <div class="container mt-4" style="max-width:360px;">
+    <div class="card p-3">
+      <div id="budgetList" class="list-group list-group-flush"></div>
     </div>
   </div>
 
   <script>
-    const API = 'https://aleink.github.io/budget-bot/api' || 'http://127.0.0.1:8000';
+    const API = 'http://127.0.0.1:8000';
+
     async function loadBudget() {
       const res = await fetch(`${API}/budget/`);
-      const js = await res.json();
-      const tbl = document.getElementById('tbl');
-      tbl.innerHTML = '';
-      if (res.ok) {
-        js.budget.forEach(b => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${b.category}</td>
-            <td>$${(b.remaining_cents/100).toFixed(2)}</td>
-            <td>$${(b.initial_cents/100).toFixed(2)}</td>
-            <td>${b.percent_left}%</td>`;
-          tbl.appendChild(tr);
-        });
-      } else {
-        tbl.innerHTML = `<tr><td colspan="4">${js.detail}</td></tr>`;
+      const list = document.getElementById('budgetList');
+
+      if (!res.ok) {
+        const err = await res.json();
+        list.innerHTML = `<div class="list-group-item text-danger">${err.detail}</div>`;
+        return;
       }
+
+      const data = await res.json();
+      list.innerHTML = '';
+
+      data.budget.forEach(item => {
+        const remD = `$${(item.remaining_cents/100).toFixed(2)}`;
+        const initD = `$${(item.initial_cents/100).toFixed(2)}`;
+        const pct  = item.percent_left.toFixed(0);
+
+        const el = document.createElement('div');
+        el.className = 'list-group-item';
+        el.innerHTML = `
+          <div class="d-flex justify-content-between mb-2">
+            <div>${item.category}</div>
+            <div>${remD} / ${initD}</div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar"
+                 style="width: ${pct}%"
+                 aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+              ${pct}%
+            </div>
+          </div>
+        `;
+        list.appendChild(el);
+      });
     }
+
     loadBudget();
   </script>
 </body>
