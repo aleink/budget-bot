@@ -1,5 +1,3 @@
-# src/app/main.py
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,7 +12,7 @@ from src.app.routers import (
 
 app = FastAPI(title="Budget Bot API")
 
-# Allow your UI (GitHub Pages or localhost) to call the API
+# Enable CORS (so your Pages or localhost UI can talk to the API)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
