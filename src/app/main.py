@@ -1,3 +1,5 @@
+# src/app/main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,12 +9,11 @@ from src.app.routers import (
     cycles,
     budget,
     alerts,
-    transactions  # <-- our new router
+    transactions,
 )
 
 app = FastAPI(title="Budget Bot API")
 
-# CORS so your GitHub Pages UI can talk to it
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,11 +25,8 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# existing routers
-app.include_router(categories.router,   prefix="/categories", tags=["categories"])
-app.include_router(cycles.router,       prefix="/cycles",     tags=["cycles"])
-app.include_router(budget.router,       prefix="/budget",     tags=["budget"])
-app.include_router(alerts.router,       prefix="/alerts",     tags=["alerts"])
-
-# new transactions router
-app.include_router(transactions.router)
+app.include_router(categories.router,   prefix="/categories",   tags=["categories"])
+app.include_router(cycles.router,       prefix="/cycles",       tags=["cycles"])
+app.include_router(budget.router,       prefix="/budget",       tags=["budget"])
+app.include_router(alerts.router,       prefix="/alerts",       tags=["alerts"])
+app.include_router(transactions.router, prefix="/transactions", tags=["transactions"])
