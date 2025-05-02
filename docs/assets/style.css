@@ -1,0 +1,111 @@
+/* assets/style.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #2F80ED;
+  --color-accent : #F2994A;
+  --color-bg     : #F2F2F7;
+  --color-surf   : #FFFFFF;
+  --color-text   : #333333;
+  --color-muted  : #666666;
+  --radius       : 12px;
+  --shadow       : 0 4px 16px rgba(0,0,0,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+header.navbar {
+  position: sticky; top: 0; left: 0; right: 0;
+  background: var(--color-surf);
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
+.navbar .container {
+  display: flex; align-items: center;
+}
+
+.btn-back {
+  background: none; border: none;
+  font-size: 1.5rem; color: var(--color-text);
+  margin-right: 1rem; cursor: pointer;
+}
+
+.nav-title {
+  font-size: 1.25rem; font-weight: 600;
+}
+
+.container { padding: 1rem; }
+
+.card {
+  background: var(--color-surf);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: var(--color-surf);
+  border: 1px solid #ddd;
+  color: var(--color-text);
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  margin-bottom: 0.75rem;
+}
+
+.list-group-item {
+  background: var(--color-surf);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.list-group-item:last-child { border-bottom: none; }
+
+.list-group-item-warning {
+  background: #fff4e5;
+}
+
+.table-responsive {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th, .table td {
+  text-align: center;
+  padding: 0.75rem;
+}
