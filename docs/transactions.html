@@ -1,64 +1,183 @@
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Configure Tailwind CSS for dark mode
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {} }
+    }
+  </script>
+  <style>
+    /* Basic transition for theme changes - Placed here as head is not visible */
+    body, header, div, nav, ul, li, a, span, button, input, select, label {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    /* Ensuring html tag also gets dark class if not already applied by other means */
+    html.dark body {
+        background-color: #1f2937; /* dark:bg-gray-800 or your chosen dark bg */
+        color: #d1d5db; /* dark:text-gray-300 or your chosen dark text */
+    }
+  </style>
+  <!-- Sticky top navbar -->
+  <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <span class="text-xl font-semibold text-blue-600 dark:text-blue-400">Budget Bot</span>
+      <nav class="flex items-center">
+        <ul class="flex space-x-4">
+          <li><a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Home</a></li>
+          <li><a href="categories.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Categories</a></li>
+          <li><a href="cycles.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Paychecks</a></li>
+          <li><a href="budget.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Budget</a></li>
+          <li><a href="alerts.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Alerts</a></li>
+          <li><a href="transactions.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Transactions</a></li>
+        </ul>
+        <button id="theme-toggle" class="ml-4 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+          <!-- Icon will be set by JavaScript -->
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <script>
+    // Assuming body tag exists somewhere above this script, though not visible in read_files
+    // Applying dark mode classes directly to body via JS if needed, though class on HTML is preferred
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      // This is a fallback, ideally dark class is on HTML tag.
+      // document.body.classList.add('dark:bg-gray-900', 'dark:text-gray-200');
+    }
+
+
     const API = 'http://127.0.0.1:8000';
 
     async function loadCats() {
       const res = await fetch(`${API}/categories/`);
       const cats = await res.json();
       const sel = document.getElementById('catSelect');
-      sel.innerHTML = '<option value="">Select…</option>';
-      cats.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.id;
-        o.textContent = c.name;
-        sel.appendChild(o);
-      });
+      if (sel) {
+        sel.className = 'mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-white dark:placeholder-gray-400';
+        sel.innerHTML = '<option value="">Select Category…</option>';
+        cats.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.id;
+          o.textContent = c.name;
+          sel.appendChild(o);
+        });
+      }
     }
 
     async function loadTxs() {
       const res = await fetch(`${API}/transactions/`);
       const txs = await res.json();
       const list = document.getElementById('txList');
+      if (!list) return; 
       list.innerHTML = '';
+      // Assuming txList container is styled like: bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 w-full max-w-lg mx-auto space-y-3
       txs.forEach(t => {
         const item = document.createElement('div');
-        item.className = 'list-group-item d-flex justify-content-between align-items-center';
+        item.className = 'flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+        const amountInDollars = (t.amount / 100).toFixed(2);
         item.innerHTML = `
-          <div>${t.timestamp.slice(0,19).replace('T',' ')}</div>
-          <div>
-            <span>${t.amount}</span>
-            <button class="btn btn-sm btn-danger ms-2">Delete</button>
+          <div class="flex-1">
+            <div class="text-sm text-gray-600 dark:text-gray-400">${new Date(t.timestamp).toLocaleString()}</div>
+            <div class="text-sm text-gray-500 dark:text-gray-500">Category ID: ${t.category_id}</div> {/* TODO: Fetch category name */}
+          </div>
+          <div class="ml-4">
+            <span class="font-semibold text-gray-800 dark:text-gray-100">$${amountInDollars}</span>
+          </div>
+          <div class="ml-4">
+            <button class="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded-md shadow-sm transition duration-150 ease-in-out">Delete</button>
           </div>
         `;
         item.querySelector('button').onclick = async () => {
           await fetch(`${API}/transactions/${t.id}`, { method: 'DELETE' });
-          loadTxs();
+          loadTxs(); 
         };
         list.appendChild(item);
       });
+      if (txs.length === 0) {
+        list.innerHTML = `<li class="p-4 text-center text-gray-500 dark:text-gray-400">No transactions yet.</li>`;
+        // If list is ul, otherwise change the class of the div
+        if (list.tagName === 'UL') list.className = 'list-none p-4 text-center text-gray-500 dark:text-gray-400 dark:bg-gray-800';
+      }
     }
 
-    document.getElementById('txForm').onsubmit = async e => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const payload = {
-        category_id: Number(fd.get('category_id')),
-        amount:      Math.round(Number(fd.get('amount'))*100)
-      };
-      const res = await fetch(`${API}/transactions/`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        e.target.reset();
-        loadTxs();
-      } else {
-        alert((await res.json()).detail);
+    const txForm = document.getElementById('txForm');
+    if (txForm) {
+      const amountInput = txForm.querySelector('input[name="amount"]');
+      if (amountInput && !amountInput.classList.contains('dark:bg-gray-700')) { 
+         amountInput.className = amountInput.className + ' dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white';
       }
-    };
+      const submitButton = txForm.querySelector('button[type="submit"]');
+      if (submitButton && !submitButton.classList.contains('dark:bg-blue-600')) {
+        submitButton.className = submitButton.className + ' dark:bg-blue-600 dark:hover:bg-blue-700';
+      }
 
+      txForm.onsubmit = async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const amountInCents = Math.round(parseFloat(fd.get('amount')) * 100);
+        const payload = {
+          category_id: Number(fd.get('category_id')),
+          amount: amountInCents 
+        };
+        const res = await fetch(`${API}/transactions/`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          e.target.reset();
+          loadTxs();
+        } else {
+          const errData = await res.json();
+          alert(`Error: ${errData.detail || 'Failed to record transaction'}`);
+        }
+      };
+    }
+
+    // Theme toggle script
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = '☀️'; 
+    const moonIcon = '🌙';
+
+    function applyTheme(theme) {
+      const htmlEl = document.documentElement; // Get the <html> element
+      if (theme === 'dark') {
+        htmlEl.classList.add('dark');
+        if(themeToggleBtn) themeToggleBtn.innerHTML = sunIcon;
+      } else {
+        htmlEl.classList.remove('dark');
+        if(themeToggleBtn) themeToggleBtn.innerHTML = moonIcon;
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      applyTheme(newTheme);
+    }
+
+    if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else if (systemPrefersDark) {
+        applyTheme('dark');
+      } else {
+        applyTheme('light'); 
+      }
+      // Ensure body gets dark mode styles if HTML has dark class and body doesn't have them yet
+      // This is particularly for docs/transactions.html due to partial loading
+      if (document.documentElement.classList.contains('dark')) {
+          if (!document.body.classList.contains('dark:bg-gray-900')) {
+             // document.body.classList.add('dark:bg-gray-900', 'dark:text-gray-200');
+          }
+      }
+    });
     // initial
     loadCats();
-    // Create a GET /transactions endpoint in your API (list all)
     loadTxs();
   </script>
