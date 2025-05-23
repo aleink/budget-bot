@@ -4,40 +4,111 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Budget Bot</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.4.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Configure Tailwind CSS for dark mode
+    tailwind.config = {
+      darkMode: 'class', // or 'media' if you prefer system preference only
+      theme: {
+        extend: {
+          // You can extend your theme here if needed
+        }
+      }
+    }
+  </script>
   <link href="assets/style.css" rel="stylesheet">
+  <style>
+    /* Basic transition for theme changes */
+    body, header, div, nav, ul, li, a, span, button, input, select, label {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+  </style>
 </head>
-<body class="d-flex flex-column">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
 
   <!-- Sticky top navbar -->
-  <header class="navbar">
-    <div class="container">
-      <span class="nav-title">Budget Bot</span>
+  <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <span class="text-xl font-semibold text-blue-600 dark:text-blue-400">Budget Bot</span>
+      <nav class="flex items-center">
+        <ul class="flex space-x-4">
+          <li><a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Home</a></li>
+          <li><a href="categories.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Categories</a></li>
+          <li><a href="cycles.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Paychecks</a></li>
+          <li><a href="budget.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Budget</a></li>
+          <li><a href="alerts.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Alerts</a></li>
+          <li><a href="transactions.html" class="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">Transactions</a></li>
+        </ul>
+        <button id="theme-toggle" class="ml-4 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+          <!-- Icon will be set by JavaScript -->
+        </button>
+      </nav>
     </div>
   </header>
 
   <!-- Centered card with stacked buttons -->
-  <div class="container flex-fill d-flex align-items-center justify-content-center">
-    <div class="card" style="width:100%; max-width: 360px;">
-      <div class="card-body">
-        <a href="categories.html" class="btn btn-primary w-100 mb-3">
+  <div class="container mx-auto px-4 py-8 flex-grow flex items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 w-full max-w-md">
+      <div class="space-y-4">
+        <a href="categories.html" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out block text-center w-full">
           🗂️ Categories
         </a>
-        <a href="cycles.html" class="btn btn-primary w-100 mb-3">
+        <a href="cycles.html" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out block text-center w-full">
           💰 Paychecks
         </a>
-        <a href="budget.html" class="btn btn-primary w-100 mb-3">
+        <a href="budget.html" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out block text-center w-full">
           📊 Budget Status
         </a>
-        <a href="alerts.html" class="btn btn-primary w-100 mb-3">
+        <a href="alerts.html" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out block text-center w-full">
           ⚠️ Alerts
         </a>
-        <a href="transactions.html" class="btn btn-primary w-100 mb-0">
+        <a href="transactions.html" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out block text-center w-full">
           📝 Record Expense
         </a>
       </div>
     </div>
   </div>
-  
+
+  <script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    // Icons for toggle button (simple text, could be SVG icons)
+    const sunIcon = '☀️'; // Light mode icon
+    const moonIcon = '🌙'; // Dark mode icon
+
+    // Function to apply the current theme
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        themeToggleBtn.innerHTML = sunIcon;
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeToggleBtn.innerHTML = moonIcon;
+      }
+    }
+
+    // Function to toggle theme
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      applyTheme(newTheme);
+    }
+
+    // Event listener for the toggle button
+    themeToggleBtn.addEventListener('click', toggleTheme);
+
+    // Apply saved theme or system preference on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else if (systemPrefersDark) {
+        applyTheme('dark');
+      } else {
+        applyTheme('light'); // Default to light if no preference
+      }
+    });
+  </script>
 </body>
 </html>
